@@ -9,3 +9,5 @@ use google maps API
 
 
 uses code standard for JavaScript from: http://javascript.crockford.com/code.html
+
+use Google HTML/CSS style guide: https://google-styleguide.googlecode.com/svn/trunk/htmlcssguide.xml
