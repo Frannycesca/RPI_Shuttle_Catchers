@@ -3,10 +3,11 @@ A web app to let people know when they need to leave their current location to c
 
 Contributers: Francesca Huber, James Adler, Brian Chin, Eric Fish
 
-Coded using JavaScript, HTML, CSS
+Coded using JavaScript, HTML, CSS, PHP whith Bootstrap for a front-end framework
 
-use google maps API
+Uses a MySQL database
 
+Uses RPI CAS for Login
 
 uses code standard for JavaScript from: http://javascript.crockford.com/code.html
 
