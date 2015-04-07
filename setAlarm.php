@@ -1,5 +1,16 @@
 <?php
 
+	try {
+	  $host = 'localhost';
+	  $root = 'sdd';
+	  $password = '';
+
+	  $dbconn = new PDO("mysql:host=$host;dbname=shuttlecatchers;",$root,$password);
+
+	} catch (PDOException $e) {
+	  die("Database Error: ". $e->getMessage());
+	}
+
 	$route = $_REQUEST['Route'];
 	$pickupLoc = $_REQUEST['PickupLoc'];
 	$walkingSpeed = $_REQUEST['WalkingSpeed'];
@@ -15,6 +26,11 @@
 	}
 
 	echo json_encode($realAlertTimes);
+
+	// $stmt = $dbconn->prepare("INSERT INTO users (rcsid) VALUES (:rcsid)");
+	// $stmt->execute(array(":rcsid"=>$rcsid));
+
+
 
 
 ?>

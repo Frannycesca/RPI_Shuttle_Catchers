@@ -3,6 +3,32 @@
 	phpCAS::client(CAS_VERSION_2_0,'cas-auth.rpi.edu',443,'/cas/');
 	// SSL!
 	phpCAS::setCasServerCACert("./CACert.pem");//this is relative to the cas client.php file
+
+
+	try {
+	  $host = 'localhost';
+	  $root = 'sdd';
+	  $password = '';
+
+	  $dbconn = new PDO("mysql:host=$host;dbname=shuttlecatchers;",$root,$password);
+
+	} catch (PDOException $e) {
+	  die("Database Error: ". $e->getMessage());
+	}
+
+	if (phpCAS::isAuthenticated()){
+		$rcsid = phpCAS::getUser();
+		$stmt = $dbconn->prepare("SELECT * FROM users WHERE rcsid = :rcsid");
+		$stmt->execute(array(":rcsid"=>$rcsid));
+		$row = $stmt->fetch();
+
+		if(count($row) == 0){
+			$stmt = $dbconn->prepare("INSERT INTO users (rcsid) VALUES (:rcsid)");
+			$stmt->execute(array(":rcsid"=>$rcsid));
+			header("Location: index.php");
+		}
+	}
+
 ?>
 
 <!DOCTYPE html>
@@ -36,18 +62,19 @@
         <div id="navbar" class="navbar-collapse collapse">
         	<form class="navbar-form navbar-right">
 	        	<?php if (phpCAS::isAuthenticated()) : ?>
-	        		<span id="username">Welcome <?php echo phpCAS::getUser(); ?>&nbsp;</span>
-	        		<div class="form-group">
-	              		<input type="tel" placeholder="Phone Number" class="form-control" />
-	            	</div>
-	            	<input type="button" id="savePhone" class="btn btn-success" value="Save Phone">
+	        		<div id="user">Welcome <span id="rcsid"><?php echo phpCAS::getUser(); ?></span></div>
+	        		<?php if($row['phonenumber'] == ""): ?>
+		        		<div class="form-group">
+		              		<input type="tel" placeholder="XXX-XXX-XXXX" id="phoneNumber" class="form-control" />
+		            	</div>
+		            	<input type="button" id="savePhone" class="btn btn-success" value="Save Phone">
+		            <?php else: ?>
+		            	<span class="label label-primary"><?php echo $row['phonenumber'].PHP_EOL; ?></span>
+		            <?php endif; ?>
 	        		<a href="./logout.php" class="btn btn-danger">Logout</a>
 				<?php else: ?>
-					
 	            	<input type="button" id="login" class="btn btn-success" value="Login">
-				<?php
-					endif;	
-	        	?>
+				<?php endif; ?>
           
           		
         	</form>
@@ -90,6 +117,17 @@
 	    			<div class="col-2">
 	    				<input type="number" id="walkingSpeed" />
 	    			</div>
+	    		</div>
+
+	    		<div class="row">
+		    		<div class="col-1">
+		    			<label for="pickupDate">Pick-up Date:</label>
+		    		</div>
+		    		<div class="col-2">
+		    			<select id="pickupDate">
+		    				<option>Please select a pick-up date</option>
+		    			</select>
+		    		</div>
 	    		</div>
 
 	    		<div class="row">
@@ -206,10 +244,7 @@
 	 				if(minute<10){
 	 					minute = "0"+minute;
 	 				}
-
 	 				// after 11pm (last shuttle), the alerts start for the next day
-
-
 	 				// alert(hour+":"+minute);
 
 	 				$("#pickupTime").html('<option>Please select a pick-up time</option><option value="next">Next available shuttle</option>');
@@ -231,6 +266,18 @@
 	    		var eastRoutes = ["Union","Colonie","Brinsmade","Sunset 1 & 2","E-lot","B-lot","9th/Sage","West lot","Sage Ave"];
 	    		var westRoutes = ["Union","Sage Ave","Blitman","City Station","Poly Tech","15th & Collage"];
 	    		var cdtaRoutes = ["Union"];
+
+	    		var oneDay = 24*3600*1000;
+	    		var d = new Date();
+	    		var tmp = (d.getMonth()+1)+"/"+d.getDate();
+
+	    		$("#pickupDate").append("<option value='"+tmp+"'>Today</option>");
+
+	    		for(var i=0; i<7; i++){
+	    			d.setMilliseconds(d.getMilliseconds()+oneDay);
+	    			tmp = (d.getMonth()+1)+"/"+d.getDate();
+	    			$("#pickupDate").append("<option value='"+tmp+"'>"+tmp+"</option>");
+	    		}
 
 	    		$("#route").change(function() {
 	    			$("#pickupLoc").html("<option>Please select a location</option>");
@@ -259,6 +306,7 @@
 	    			var route = $("#route").val();
 	    			var pickupLoc = $("#pickupLoc").val();
 	    			var walkingSpeed = $("#walkingSpeed").val();
+	    			var pickupDate = $("#pickupDate").val();
 	    			var pickupTime = $("#pickupTime").val();
 
 
@@ -283,6 +331,7 @@
 	    					Route: route,
 	    					PickupLoc: pickupLoc,
 	    					WalkingSpeed: walkingSpeed,
+	    					PickupDate: pickupDate,
 	    					PickupTime: pickupTime,
 	    					AlertTimes: JSON.stringify(alertTimes)
 	    				},
@@ -299,6 +348,46 @@
 				
 				$("#login").click(function(){
 					window.location.href = "./login.php";
+				});
+
+				$("#savePhone").click(function(){
+
+					var phone = $("#phoneNumber").val();
+
+					var phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
+				  	var digits = phone.replace(/\D/g, "");
+
+				  	if(digits.match(phoneRe) !== null){
+				  		var rcs_id = $("#rcsid").html();
+
+				  		$.ajax({
+				  			url: "addNumber.php",
+				  			data: {
+				  				rcsid: rcs_id,
+				  				phonenumber: digits
+				  			},
+				  			success: function(data){
+				  				location.reload();
+				  			}
+				  		});
+				  	} else{
+				  		alert("Invalid phone number");
+				  	}
+				  	// alert(digits.match(phoneRe));
+					// return (digits.match(phoneRe) !== null);
+
+
+					// if(phone.match(/^[(]{0,1}[0-9]{3}[)]{0,1}[-\s\.]{0,1}[0-9]{3}[-\s\.]{0,1}[0-9]{4}$/) == null){
+					// 	alert("Invalid phone number");
+					// }
+					// alert(phone.match(/^[(]{0,1}[0-9]{3}[)]{0,1}[-\s\.]{0,1}[0-9]{3}[-\s\.]{0,1}[0-9]{4}$/));
+					// alert(phone);
+					// if(phone < 10){
+					// 	alert("Invalid phone number");
+					// 	return 1;
+					// }
+
+					// alert(phone);
 				});
 
 	    	});

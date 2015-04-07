@@ -46,6 +46,7 @@
 
 	    	<ul>
 	    		<li><a href="https://github.com/clarkb7/Pebble_RPI_Shuttle_Schedule">Pebble_RPI_Shuttle_Schedule</a></li>
+          <li><a href="https://buildingtents.wordpress.com/2013/04/16/rpi-phpcas-authentication-tutorial/">RPI phpCAS Auth</a></li>
 	    	</ul>
     	</div>
     </div>
