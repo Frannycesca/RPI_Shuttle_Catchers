@@ -8,6 +8,7 @@
 	try {
 	  $host = 'localhost';
 	  $root = 'root';
+	  $password = 'sdd';
 
 	  $dbconn = new PDO("mysql:host=$host;dbname=shuttlecatchers;",$root,$password);
 
