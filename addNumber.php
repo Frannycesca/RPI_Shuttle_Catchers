@@ -1,19 +1,11 @@
 <?php
-	// print_r($_REQUEST);
 
-	try {
-	  $host = 'localhost';
-	  $root = 'sdd';
-	  $password = '';
-
-	  $dbconn = new PDO("mysql:host=$host;dbname=shuttlecatchers;",$root,$password);
-
-	} catch (PDOException $e) {
-	  die("Database Error: ". $e->getMessage());
-	}
+	require_once("./dbconfig.php");
+  
+  
 
 	// $phonenumber 
-	$stmt = $dbconn->prepare("UPDATE users SET phonenumber = :phone WHERE rcsid = :rcsid");
-	$stmt->execute(array(":phone"=>$_REQUEST['phonenumber'],":rcsid"=>$_REQUEST['rcsid']));
+	$stmt = $dbconn->prepare("UPDATE users SET phonenumber = :phone, carrier = :carrier WHERE rcsid = :rcsid");
+	$stmt->execute(array(":phone"=>$_REQUEST['phonenumber'],":carrier"=>$_REQUEST['phonecarrier'], ":rcsid"=>$_REQUEST['rcsid']));
 
 ?>

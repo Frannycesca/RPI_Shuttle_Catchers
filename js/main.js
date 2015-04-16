@@ -43,7 +43,8 @@ function getSchedule(route, loc) {
       // after 11pm (last shuttle), the alerts start for the next day
       // alert(hour+":"+minute);
 
-      $("#pickupTime").html('<option>Please select a pick-up time</option><option value="next">Next available shuttle</option>');
+//      $("#pickupTime").html('<option>Please select a pick-up time</option><option value="next">Next available shuttle</option>');
+      $("#pickupTime").html('<option>Please select a pick-up time</option>');
       for (var i = 0; i < tmp.length; i++) {
         if (tmp[i].location === loc) {
           var times = tmp[i].times;
@@ -100,16 +101,20 @@ $(document).ready(function () {
   });
 
   $("#setAlarm").click(function () {
+    $("#error").css('visibility', 'hidden');
+    $("#route").removeClass("error");
+    $("#pickupLoc").removeClass("error");
+    $("#walkingSpeed").removeClass("error");
+    $("#pickupDate").removeClass("error");
+    $("#pickupTime").removeClass("error");
+    
     var route = $("#route").val();
     var pickupLoc = $("#pickupLoc").val();
     var walkingSpeed = $("#walkingSpeed").val();
     var pickupDate = $("#pickupDate").val();
     var pickupTime = $("#pickupTime").val();
 
-    var alertTimes = [];
-    $("input[name='alert_times[]']:checked").each(function () {
-      alertTimes.push(this.value);
-    });
+    
 
 //    $("#out_route").html("Route: " + route);
 //    $("#out_loc").html("Pick-up Location: " + pickupLoc);
@@ -119,22 +124,53 @@ $(document).ready(function () {
     // for(var i=0;i<alertTimes.length;i++){
     // 	$("#out_alerts").append(alertTimes[i]+", ");
     // }
-
-
-    $.ajax({
-      url: "http://shuttlecatchers.myrpi.org/setAlarm.php",
-      data: {
-        Route: route,
-        PickupLoc: pickupLoc,
-        WalkingSpeed: walkingSpeed,
-        PickupDate: pickupDate,
-        PickupTime: pickupTime,
-        AlertTimes: JSON.stringify(alertTimes)
-      },
-      success: function (data) {
-        alert(data);
+    
+    var error = false;
+    if (route === "Please select a route") {
+      $("#route").addClass("error");
+				error = true;
+ 			}
+ 			if (pickupLoc === "Please select a location") {
+ 				$("#pickupLoc").addClass("error");
+ 				error = true;
+ 			}
+ 			if (walkingSpeed == '' || walkingSpeed.length == 0) {
+ 				$("#walkingSpeed").addClass("error");
+ 				error = true;
+ 			}
+ 			if (pickupDate === "Please select a pick-up date") {
+ 				$("#pickupDate").addClass("error");
+ 				error = true;
+ 			}
+ 			if (pickupTime === "Please select a pick-up time") {
+ 				$("#pickupTime").addClass("error");
+ 				error = true;
+ 			}
+      
+      if(error === false){
+        var alertTimes = [];
+        $("input[name='alert_times[]']:checked").each(function () {
+          alertTimes.push(this.value);
+        });
+        
+        $.ajax({
+          url: "http://shuttlecatchers.myrpi.org/setAlarm.php",
+          data: {
+            Route: route,
+            PickupLoc: pickupLoc,
+            WalkingSpeed: walkingSpeed,
+            PickupDate: pickupDate,
+            PickupTime: pickupTime,
+            AlertTimes: JSON.stringify(alertTimes)
+          },
+          success: function (data) {
+            alert(data);
+            location.reload();
+          }
+        });
+      } else {
+        $("#error").css('visibility', 'visible');
       }
-    });
 
   });
 

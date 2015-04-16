@@ -1,31 +1,20 @@
 <?php
 	include_once("./CAS-1.3.2/CAS.php");
 	phpCAS::client(CAS_VERSION_2_0,'cas-auth.rpi.edu',443,'/cas/');
-	// SSL!
 	phpCAS::setCasServerCACert("./CACert.pem");//this is relative to the cas client.php file
 
-
-	try {
-	  $host = 'localhost';
-	  $root = 'root';
-	  $password = 'sdd';
-
-	  $dbconn = new PDO("mysql:host=$host;dbname=shuttlecatchers;",$root,$password);
-
-	} catch (PDOException $e) {
-	  die("Database Error: ". $e->getMessage());
-	}
+	require_once("./dbconfig.php");
 
 	if (phpCAS::isAuthenticated()){
 		$rcsid = phpCAS::getUser();
 		$stmt = $dbconn->prepare("SELECT * FROM users WHERE rcsid = :rcsid");
 		$stmt->execute(array(":rcsid"=>$rcsid));
 		$row = $stmt->fetch();
-
-		if(count($row) == 0){
+    
+		if(count($row) == 1){
 			$stmt = $dbconn->prepare("INSERT INTO users (rcsid) VALUES (:rcsid)");
 			$stmt->execute(array(":rcsid"=>$rcsid));
-			header("Location: index.php");
+			header("Location: http://shuttlecatchers.myrpi.org/");
 		}
 	}
 
@@ -66,23 +55,53 @@
 	        		<?php if($row['phonenumber'] == ""): ?>
 		        		<div class="form-group">
 		              		<input type="tel" placeholder="XXX-XXX-XXXX" id="phoneNumber" class="form-control" />
+                      <select id="phoneCarrier">
+                        <option>Phone Carrier</option>
+                        <option value="att">AT&amp;T</option>
+                        <option value="boost">Boost Mobile</option>
+                        <option value="sprint">Sprint</option>
+                        <option value="tmobile">T-Mobile</option>
+                        <option value="verizon">Verizon</option>
+                        <option value="virgin">Virgin Mobile</option>
+                      </select>
 		            	</div>
 		            	<input type="button" id="savePhone" class="btn btn-success" value="Save Phone">
 		            <?php else: ?>
 		            	<span class="label label-primary"><?php echo $row['phonenumber'].PHP_EOL; ?></span>
 		            <?php endif; ?>
-	        		<a href="./logout.php" class="btn btn-danger">Logout</a>
-				<?php else: ?>
-	            	<input type="button" id="login" class="btn btn-success" value="Login">
-				<?php endif; ?>
-          
-          		
+                  <a href="./logout.php" class="btn btn-danger">Logout</a>
+                <?php else: ?>
+                  <input type="button" id="login" class="btn btn-success" value="Login">
+                <?php endif; ?>
         	</form>
         </div>
       </div>
     </nav>
     <div class="container theme-showcase" role="main">
     	<div class="jumbotron">
+        <?php if($row['phonenumber'] == ""): ?>
+        <h3>
+          <span id="noNumber" class="label label-danger">You must enter a phone number (above) before you can set an alert!</span>
+        </h1>
+        
+        <?php 
+          else: 
+            $stmt = $dbconn->prepare("SELECT * FROM schedules WHERE rcsid = :rcsid");
+            $stmt->execute(array(":rcsid"=>$rcsid));
+            $row = $stmt->fetch();
+                        
+            if(count($row) > 1):
+              echo "Pickup Location: ".$row['pickup_loc'];
+              echo "<br>Pickup Time: ".$row['pickup_time'];
+              $alerts = json_decode($row['schedule']);
+              echo "<br>Alerts: ".$row['first_alert'];
+              for($i=0; $i<count($alerts);$i++){
+                echo "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".$alerts[$i];
+              }
+              
+            else:
+           
+        ?>
 	    	<form class="form-signin">
 	    		<div class="row">
 	    			<div class="col-1">
@@ -137,7 +156,7 @@
 		    		<div class="col-2">
 		    			<select id="pickupTime">
 		    				<option>Please select a pick-up time</option>
-		    				<option value="next">Next available shuttle</option>
+		    				<!--<option value="next">Next available shuttle</option>-->
 		    			</select>
 		    		</div>
 	    		</div>
@@ -172,10 +191,11 @@
 						</div>
 	    		</div>
 		    </form>
+        
+        <div id="error">
+          Please fill all values
+        </div>
 
-		    <div id="error">
-		    	Please fill all values
-		    </div>
 		    <div id="output">
 		    	<span id="out_route"></span> <br/>
 		    	<span id="out_loc"></span> <br/>
@@ -185,12 +205,15 @@
 		    </div>
     	</div>
 
-
+      <?php endif; endif; ?>
     </div>
-
-    <footer>
-    	<a href="./credits.php">Credits</a>
+    
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted"><a href="./credits.php">Credits</a></p>
+      </div>
     </footer>
+
 
 		<div id="map-canvas"></div>
 		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -202,238 +225,7 @@
 		<script type="text/javascript" src="./js/jquery-1.11.2.min.js"></script>
   	<script src="./js/bootstrap.min.js"></script>
 
-  	<script type="text/javascript">
-
-    	function getSchedule(route, loc){
-    		$.getJSON("rpi_shuttle_schedule.json", function(data){
-    			var today = new Date();
-    			var dayOfWeek = today.getDay();
-    			// var time = today.getTime();
-    			console.log(data);
-
-    			if(route == "east"){
-    				// it's the weekend
-    				if(dayOfWeek == 0 || dayOfWeek == 6){
-						var tmp = data.Weekend_East;
-    				}
-    				// it's a week day
-    				else if(dayOfWeek > 0 && dayOfWeek < 6){
-    					var tmp = data.Weekday_East;
-    				}
-    			}
- 				else if(route == "west") {
- 					// it's sunday
- 					if(dayOfWeek == 0){
-						var tmp = data.Sunday_West;
-    				}
-    				// it's saturday
-    				else if(dayOfWeek == 6) {
-    					var tmp = data.Saturday_West;
-    				} 
-    				// it's a week day
-    				else{
-    					var tmp = data.Weekday_West;
-    				}
- 				}
- 				// var time = new Date().toGMTString();
- 				var hour = today.getHours();
- 				// var shuttleClosed = false;
- 				if(hour >= 23){
- 					// shuttleClosed = true;
- 					//$("#setAlarm").hide();
- 				}
- 				else {
- 					var minute = today.getMinutes();
-	 				if(minute<10){
-	 					minute = "0"+minute;
-	 				}
-	 				// after 11pm (last shuttle), the alerts start for the next day
-	 				// alert(hour+":"+minute);
-
-	 				$("#pickupTime").html('<option>Please select a pick-up time</option><option value="next">Next available shuttle</option>');
-	 				for (var i=0; i<tmp.length; i++) {
-						if(tmp[i].location == loc){
-							var times = tmp[i].times;
-							for(var j=0; j<times.length; j++){
-								$("#pickupTime").append("<option value='"+times[j]+"'>"+times[j]+"</option>");
-							}
-						}
-					}
- 				}
-
- 				
-			});
-    	}
-
-	    	$(document).ready(function(){
-	    		var eastRoutes = ["Union","Colonie","Brinsmade","Sunset 1 & 2","E-lot","B-lot","9th/Sage","West lot","Sage Ave"];
-	    		var westRoutes = ["Union","Sage Ave","Blitman","City Station","Poly Tech","15th & Collage"];
-	    		var cdtaRoutes = ["Union"];
-
-	    		var oneDay = 24*3600*1000;
-	    		var d = new Date();
-	    		var tmp = (d.getMonth()+1)+"/"+d.getDate();
-
-	    		$("#pickupDate").append("<option value='"+tmp+"'>Today</option>");
-
-	    		for(var i=0; i<7; i++){
-	    			d.setMilliseconds(d.getMilliseconds()+oneDay);
-	    			tmp = (d.getMonth()+1)+"/"+d.getDate();
-	    			$("#pickupDate").append("<option value='"+tmp+"'>"+tmp+"</option>");
-	    		}
-
-	    		$("#route").change(function() {
-	    			$("#pickupLoc").html("<option>Please select a location</option>");
-	    			if(this.value == "east"){
-	    				for(var i=0; i<eastRoutes.length; i++){
-	    					$("#pickupLoc").append("<option value='"+eastRoutes[i]+"'>"+eastRoutes[i]+"</option>");
-	    				}
-
-	    			} else if(this.value == "west") {
-	    				for(var i=0; i<westRoutes.length; i++){
-	    					$("#pickupLoc").append("<option value='"+westRoutes[i]+"'>"+westRoutes[i]+"</option>");
-	    				}
-	    			} else if(this.value == "cdta") {
-	    				for(var i=0; i<cdtaRoutes.length; i++){
-	    					$("#pickupLoc").append("<option value='"+cdtaRoutes[i]+"'>"+cdtaRoutes[i]+"</option>");
-	    				}
-	    			}
-
-	    		});
-
-	    		$("#pickupLoc").change(function(){
-	    			getSchedule($("#route").val(),this.value);
-	    		});
-
-	    		$("#setAlarm").click(function(){
-	    			$("#error").css('visibility', 'hidden');
-	    			$("#route").removeClass("error");
-	    			$("#pickupLoc").removeClass("error");
-	    			$("#walkingSpeed").removeClass("error");
-	    			$("#pickupDate").removeClass("error");
-	    			$("#pickupTime").removeClass("error");
-
-	    			var route = $("#route").val();
-	    			var pickupLoc = $("#pickupLoc").val();
-	    			var walkingSpeed = $("#walkingSpeed").val();
-	    			var pickupDate = $("#pickupDate").val();
-	    			var pickupTime = $("#pickupTime").val();
-
-
-	    			//console.log(route + " " + pickupLoc + " " + walkingSpeed + " " + pickupDate + " " + pickupTime);
-	    			var error = false;
-	    			if (route === "Please select a route") {
-	    				$("#route").addClass("error");
-	    				error = true;
-	    			}
-	    			if (pickupLoc === "Please select a location") {
-	    				$("#pickupLoc").addClass("error");
-	    				error = true;
-	    			}
-	    			if (walkingSpeed == '' || walkingSpeed.length == 0) {
-	    				$("#walkingSpeed").addClass("error");
-	    				error = true;
-	    			}
-	    			if (pickupDate === "Please select a pick-up date") {
-	    				$("#pickupDate").addClass("error");
-	    				error = true;
-	    			}
-	    			if (pickupTime === "Please select a pick-up time") {
-	    				$("#pickupTime").addClass("error");
-	    				error = true;
-	    			}
-	    			//console.log(error);
-
-	    			if (error === false) {
-		    			var alertTimes = [];
-		    			$("input[name='alert_times[]']:checked").each(function(){
-		    				alertTimes.push(this.value);
-		    			});
-
-
-
-		    			$("#out_route").html("Route: "+route);
-		    			$("#out_loc").html("Pick-up Location: "+pickupLoc);
-		    			$("#out_speed").html("Waling Speed: "+walkingSpeed);
-		    			$("#out_time").html("Pick-up Time: "+pickupTime);
-		    			$("#out_alerts").html("Alerts: ");
-		    			// for(var i=0;i<alertTimes.length;i++){
-		    			// 	$("#out_alerts").append(alertTimes[i]+", ");
-		    			// }
-
-
-		    			$.ajax({
-		    				url: "setAlarm.php",
-		    				data: {
-		    					Route: route,
-		    					PickupLoc: pickupLoc,
-		    					WalkingSpeed: walkingSpeed,
-		    					PickupDate: pickupDate,
-		    					PickupTime: pickupTime,
-		    					AlertTimes: JSON.stringify(alertTimes)
-		    				},
-		    				success: function(data){
-		    					var times = JSON.parse(data);
-
-		    					for(var i=0; i<times.length; i++){
-		    						$("#out_alerts").append(times[i]+", ");
-		    					}
-		    				}
-		    			});
-		    		}
-		    		else {
-		    			$("#error").css('visibility', 'visible');
-		    		}
-
-	    		});	    		
-				
-				$("#login").click(function(){
-					window.location.href = "./login.php";
-				});
-
-				$("#savePhone").click(function(){
-
-					var phone = $("#phoneNumber").val();
-
-					var phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
-				  	var digits = phone.replace(/\D/g, "");
-
-				  	if(digits.match(phoneRe) !== null){
-				  		var rcs_id = $("#rcsid").html();
-
-				  		$.ajax({
-				  			url: "addNumber.php",
-				  			data: {
-				  				rcsid: rcs_id,
-				  				phonenumber: digits
-				  			},
-				  			success: function(data){
-				  				location.reload();
-				  			}
-				  		});
-				  	} else{
-				  		alert("Invalid phone number");
-				  	}
-				  	// alert(digits.match(phoneRe));
-					// return (digits.match(phoneRe) !== null);
-
-
-					// if(phone.match(/^[(]{0,1}[0-9]{3}[)]{0,1}[-\s\.]{0,1}[0-9]{3}[-\s\.]{0,1}[0-9]{4}$/) == null){
-					// 	alert("Invalid phone number");
-					// }
-					// alert(phone.match(/^[(]{0,1}[0-9]{3}[)]{0,1}[-\s\.]{0,1}[0-9]{3}[-\s\.]{0,1}[0-9]{4}$/));
-					// alert(phone);
-					// if(phone < 10){
-					// 	alert("Invalid phone number");
-					// 	return 1;
-					// }
-
-					// alert(phone);
-				});
-
-	    	});
-
-    	</script>
+    <script src="js/main.js" type="text/javascript"></script>
 
 	</body>
 </html>

@@ -5,11 +5,12 @@
     // SSL!
     phpCAS::setCasServerCACert("./CACert.pem");//this is relative to the cas client.php file
     
-    if (!phpCAS::isAuthenticated())
-    {
+    if (!phpCAS::isAuthenticated()) {
         phpCAS::forceAuthentication();
     }else{
-        header('location: ./index.php');
+        header('location: http://shuttlecatchers.myrpi.org/');
     }
+
+  echo "login";
 
 ?>

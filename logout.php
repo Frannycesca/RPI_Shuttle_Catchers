@@ -7,10 +7,11 @@
     
     if (phpCAS::isAuthenticated())
     {
-        // phpCAS::logout();
-        phpCAS::logoutWithUrl("http://127.0.01/sdd");
-        // phpCAS::logout(array('service'=>'http://127.0.01/sdd'));
-    }else{
-        header('location: ./index.php');
+//         phpCAS::logout();
+//        phpCAS::logoutWithUrl("http://shuttlecatchers.myrpi.org/");
+         phpCAS::logout(array('service'=>'http://shuttlecatchers.myrpi.org/'));
+    }
+    else{
+//        header('location: http://shuttlecatchers.myrpi.org/');
     }
 ?>
