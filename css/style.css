@@ -61,3 +61,11 @@
 #user {
   color: gray;
 }
+
+.error {
+  border: solid red 1px;
+}
+#error {
+  color: red;
+  visibility: hidden;
+}

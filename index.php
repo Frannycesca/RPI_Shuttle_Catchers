@@ -7,8 +7,7 @@
 
 	try {
 	  $host = 'localhost';
-	  $root = 'sdd';
-	  $password = '';
+	  $root = 'root';
 
 	  $dbconn = new PDO("mysql:host=$host;dbname=shuttlecatchers;",$root,$password);
 
@@ -173,6 +172,9 @@
 	    		</div>
 		    </form>
 
+		    <div id="error">
+		    	Please fill all values
+		    </div>
 		    <div id="output">
 		    	<span id="out_route"></span> <br/>
 		    	<span id="out_loc"></span> <br/>
@@ -237,7 +239,7 @@
  				// var shuttleClosed = false;
  				if(hour >= 23){
  					// shuttleClosed = true;
- 					$("#setAlarm").hide();
+ 					//$("#setAlarm").hide();
  				}
  				else {
  					var minute = today.getMinutes();
@@ -303,6 +305,13 @@
 	    		});
 
 	    		$("#setAlarm").click(function(){
+	    			$("#error").css('visibility', 'hidden');
+	    			$("#route").removeClass("error");
+	    			$("#pickupLoc").removeClass("error");
+	    			$("#walkingSpeed").removeClass("error");
+	    			$("#pickupDate").removeClass("error");
+	    			$("#pickupTime").removeClass("error");
+
 	    			var route = $("#route").val();
 	    			var pickupLoc = $("#pickupLoc").val();
 	    			var walkingSpeed = $("#walkingSpeed").val();
@@ -310,39 +319,70 @@
 	    			var pickupTime = $("#pickupTime").val();
 
 
-	    			var alertTimes = [];
-	    			$("input[name='alert_times[]']:checked").each(function(){
-	    				alertTimes.push(this.value);
-	    			});
+	    			//console.log(route + " " + pickupLoc + " " + walkingSpeed + " " + pickupDate + " " + pickupTime);
+	    			var error = false;
+	    			if (route === "Please select a route") {
+	    				$("#route").addClass("error");
+	    				error = true;
+	    			}
+	    			if (pickupLoc === "Please select a location") {
+	    				$("#pickupLoc").addClass("error");
+	    				error = true;
+	    			}
+	    			if (walkingSpeed == '' || walkingSpeed.length == 0) {
+	    				$("#walkingSpeed").addClass("error");
+	    				error = true;
+	    			}
+	    			if (pickupDate === "Please select a pick-up date") {
+	    				$("#pickupDate").addClass("error");
+	    				error = true;
+	    			}
+	    			if (pickupTime === "Please select a pick-up time") {
+	    				$("#pickupTime").addClass("error");
+	    				error = true;
+	    			}
+	    			//console.log(error);
 
-	    			$("#out_route").html("Route: "+route);
-	    			$("#out_loc").html("Pick-up Location: "+pickupLoc);
-	    			$("#out_speed").html("Waling Speed: "+walkingSpeed);
-	    			$("#out_time").html("Pick-up Time: "+pickupTime);
-	    			$("#out_alerts").html("Alerts: ");
-	    			// for(var i=0;i<alertTimes.length;i++){
-	    			// 	$("#out_alerts").append(alertTimes[i]+", ");
-	    			// }
+	    			if (error === false) {
+		    			var alertTimes = [];
+		    			$("input[name='alert_times[]']:checked").each(function(){
+		    				alertTimes.push(this.value);
+		    			});
 
 
-	    			$.ajax({
-	    				url: "setAlarm.php",
-	    				data: {
-	    					Route: route,
-	    					PickupLoc: pickupLoc,
-	    					WalkingSpeed: walkingSpeed,
-	    					PickupDate: pickupDate,
-	    					PickupTime: pickupTime,
-	    					AlertTimes: JSON.stringify(alertTimes)
-	    				},
-	    				success: function(data){
-	    					var times = JSON.parse(data);
 
-	    					for(var i=0; i<times.length; i++){
-	    						$("#out_alerts").append(times[i]+", ");
-	    					}
-	    				}
-	    			});
+		    			$("#out_route").html("Route: "+route);
+		    			$("#out_loc").html("Pick-up Location: "+pickupLoc);
+		    			$("#out_speed").html("Waling Speed: "+walkingSpeed);
+		    			$("#out_time").html("Pick-up Time: "+pickupTime);
+		    			$("#out_alerts").html("Alerts: ");
+		    			// for(var i=0;i<alertTimes.length;i++){
+		    			// 	$("#out_alerts").append(alertTimes[i]+", ");
+		    			// }
+
+
+		    			$.ajax({
+		    				url: "setAlarm.php",
+		    				data: {
+		    					Route: route,
+		    					PickupLoc: pickupLoc,
+		    					WalkingSpeed: walkingSpeed,
+		    					PickupDate: pickupDate,
+		    					PickupTime: pickupTime,
+		    					AlertTimes: JSON.stringify(alertTimes)
+		    				},
+		    				success: function(data){
+		    					var times = JSON.parse(data);
+
+		    					for(var i=0; i<times.length; i++){
+		    						$("#out_alerts").append(times[i]+", ");
+		    					}
+		    				}
+		    			});
+		    		}
+		    		else {
+		    			$("#error").css('visibility', 'visible');
+		    		}
 
 	    		});	    		
 				
