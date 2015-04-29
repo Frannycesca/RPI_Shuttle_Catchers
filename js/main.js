@@ -30,13 +30,14 @@ function getSchedule(route, loc) {
     }
     // var time = new Date().toGMTString();
     var hour = today.getHours();
+    var minute = today.getMinutes();
     // var shuttleClosed = false;
     if (hour >= 23) {
       // shuttleClosed = true;
       $("#setAlarm").hide();
     }
     else {
-      var minute = today.getMinutes();
+      minute = today.getMinutes();
       if (minute < 10) {
         minute = "0" + minute;
       }
@@ -45,11 +46,36 @@ function getSchedule(route, loc) {
 
 //      $("#pickupTime").html('<option>Please select a pick-up time</option><option value="next">Next available shuttle</option>');
       $("#pickupTime").html('<option>Please select a pick-up time</option>');
+       var date = (today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();
       for (var i = 0; i < tmp.length; i++) {
         if (tmp[i].location === loc) {
           var times = tmp[i].times;
-          for (var j = 0; j < times.length; j++) {
-            $("#pickupTime").append("<option value='" + times[j] + "'>" + times[j] + "</option>");
+          for (var j = 0; j < times.length; j++) { 
+         
+            if ($("#pickupDate").val() === date) {
+                 var military = hour + ":" + minute;
+                  var temp;
+                  var arr = times[j].split(" ");
+                  var arr2 = arr[0].split(":");
+                  if (arr[arr.length - 1] === "PM") {
+                    if (arr2[0] !== "12") {
+                      arr2[0] = parseInt(arr2[0], 10) + 12;
+                    }
+                  }
+                  else {
+                    if (arr2[0] === "12")  {
+                      arr2[0] = "00";
+                    }
+                  }
+                  temp = arr2[0] + ":" + arr2[1];
+
+                if ( temp > military ) {
+                  $("#pickupTime").append("<option value='" + times[j] + "'>" + times[j] + "</option>"); 
+                }
+            }
+            else {
+              $("#pickupTime").append("<option value='" + times[j] + "'>" + times[j] + "</option>"); 
+            }
           }
         }
       }
@@ -58,6 +84,7 @@ function getSchedule(route, loc) {
 
   });
 }
+
 
 $(document).ready(function () {
   var eastRoutes = ["Union", "Colonie", "Brinsmade", "Sunset 1 & 2", "E-lot", "B-lot", "9th/Sage", "West lot", "Sage Ave"];
@@ -94,66 +121,7 @@ $(document).ready(function () {
 
 
   $("#pickupDate").change(function () {
-    
-    //if pickup date is today, remove all shuttle times before current time
-    console.log(today);
-    
-    if (this.value === today) {
-       var now = new Date();
-      //  var hour = now.getHours();
-        var minutes = now.getMinutes();
-      //  var twelve = "AM";
-      //  if (hour > 11) {
-      //     twelve = "PM";
-      //  }
-      //  if (hour == 0) {
-      //    hour = 12;
-      //  }
-      // else if (hour > 12) {
-      //   hour = hour - 12;
-      //   if (hour < 10) {
-      //     hour = "0" + hour;
-      //   }
-      // }
-      // else {
-      //   hour = "0" + hour;
-      // }
-      // if (minutes < 10) {
-      //   minutes = "0" + minutes;
-      // }
-      var military = now.getHours() + ":" + minutes;
-      //var merge = hour + ":" + minutes + " " + twelve;
- 
- 
-      $('#pickupTime option').each(function() {
-        //console.log($(this).val());
-        var temp;
-        var arr = $(this).val().split(" ");
-        var arr2 = arr[0].split(":");
-        if (arr[arr.length - 1] === "PM") {
-          if (arr2[0] !== "12") {
-            arr2[0] = parseInt(arr2[0], 10) + 12;
-          }
-        }
-        else {
-          if (arr2[0] === "12")  {
-            arr2[0] = 0;
-          }
-        }
-        temp = arr2[0] + ":" + arr2[1];
-
-        console.log($(this).val() + " " + temp );
-        if ( temp < military ) {
-          $(this).remove();
-          //console.log($(this).val());
-        }
-      });
-    }
-    else {
-       getSchedule($("#route").val(), $("#pickupLoc").val());
-    }
-
-
+    getSchedule($("#route").val(), $("#pickupLoc").val());
   });
 
   $("#pickupLoc").change(function () {
