@@ -47,8 +47,17 @@
             <span class="icon-bar"></span>
           </button>
           <a class="navbar-brand" href=".">RPI Shuttle Catchers</a>
+
         </div>
         <div id="navbar" class="navbar-collapse collapse">
+        	<ul class="nav navbar-nav">
+        		<li>
+        			<a href="">Home</a>
+        		</li>
+        		<li>
+        			<a href="#">View Schedule</a>
+        		</li>
+        	</ul>
         	<form class="navbar-form navbar-right">
 	        	<?php if (phpCAS::isAuthenticated()) : ?>
 	        		<div id="user">Welcome <span id="rcsid"><?php echo phpCAS::getUser(); ?></span></div>
@@ -79,13 +88,13 @@
     </nav>
     <div class="container theme-showcase" role="main">
     	<div class="jumbotron">
-        <?php if($row['phonenumber'] == ""): ?>
+ <!--        <?php if($row['phonenumber'] == ""): ?>
         <h3>
           <span id="noNumber" class="label label-danger">You must enter a phone number (above) before you can set an alert!</span>
-        </h1>
+        </h1> -->
         
         <?php 
-          else: 
+          // else: 
             $stmt = $dbconn->prepare("SELECT * FROM schedules WHERE rcsid = :rcsid");
             $stmt->execute(array(":rcsid"=>$rcsid));
             $row = $stmt->fetch();
@@ -112,7 +121,6 @@
 		    				<option>Please select a route</option>
 		    				<option value="east">East</option>
 		    				<option value="west">West</option>
-		    				<option value="cdta">CDTA</option>
 		    			</select>
     				</div>
     				<!-- <div class="col-md-2">&nbsp;</div> -->

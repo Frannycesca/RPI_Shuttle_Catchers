@@ -67,6 +67,7 @@ $(document).ready(function () {
   var oneDay = 24 * 3600 * 1000;
   var d = new Date();
   var tmp = (d.getMonth() + 1) + "/" + d.getDate() + "/" + d.getFullYear();
+  var today = tmp;
 
   $("#pickupDate").append("<option value='" + tmp + "'>Today</option>");
 
@@ -84,15 +85,74 @@ $(document).ready(function () {
         $("#pickupLoc").append("<option value='" + eastRoutes[i] + "'>" + eastRoutes[i] + "</option>");
       }
 
-    } else if (this.value === "west") {
+    } else { //this.value == west
       for (var i = 0; i < westRoutes.length; i++) {
         $("#pickupLoc").append("<option value='" + westRoutes[i] + "'>" + westRoutes[i] + "</option>");
       }
-    } else if (this.value === "cdta") {
-      for (var i = 0; i < cdtaRoutes.length; i++) {
-        $("#pickupLoc").append("<option value='" + cdtaRoutes[i] + "'>" + cdtaRoutes[i] + "</option>");
-      }
+    } 
+  });
+
+
+  $("#pickupDate").change(function () {
+    
+    //if pickup date is today, remove all shuttle times before current time
+    console.log(today);
+    
+    if (this.value === today) {
+       var now = new Date();
+      //  var hour = now.getHours();
+        var minutes = now.getMinutes();
+      //  var twelve = "AM";
+      //  if (hour > 11) {
+      //     twelve = "PM";
+      //  }
+      //  if (hour == 0) {
+      //    hour = 12;
+      //  }
+      // else if (hour > 12) {
+      //   hour = hour - 12;
+      //   if (hour < 10) {
+      //     hour = "0" + hour;
+      //   }
+      // }
+      // else {
+      //   hour = "0" + hour;
+      // }
+      // if (minutes < 10) {
+      //   minutes = "0" + minutes;
+      // }
+      var military = now.getHours() + ":" + minutes;
+      //var merge = hour + ":" + minutes + " " + twelve;
+ 
+ 
+      $('#pickupTime option').each(function() {
+        //console.log($(this).val());
+        var temp;
+        var arr = $(this).val().split(" ");
+        var arr2 = arr[0].split(":");
+        if (arr[arr.length - 1] === "PM") {
+          if (arr2[0] !== "12") {
+            arr2[0] = parseInt(arr2[0], 10) + 12;
+          }
+        }
+        else {
+          if (arr2[0] === "12")  {
+            arr2[0] = 0;
+          }
+        }
+        temp = arr2[0] + ":" + arr2[1];
+
+        console.log($(this).val() + " " + temp );
+        if ( temp < military ) {
+          $(this).remove();
+          //console.log($(this).val());
+        }
+      });
     }
+    else {
+       getSchedule($("#route").val(), $("#pickupLoc").val());
+    }
+
 
   });
 
