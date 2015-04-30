@@ -59,16 +59,19 @@
   $stmt = $dbconn->prepare("SELECT * FROM schedules WHERE date = :today AND first_alert = :timeR1;");
   $stmt->execute(array(":today"=>$today, ":timeR1"=>$timeR1));
   
-//  $stmt = $dbconn->prepare("SELECT * FROM schedules WHERE date = :today ;");
-//  $stmt->execute(array(":today"=>$today));
+ // $stmt = $dbconn->prepare("SELECT * FROM schedules WHERE date = :today ;");
+ // $stmt->execute(array(":today"=>$today));
  
   while($row = $stmt->fetch()){
     $tmpMail = $mail;
     $rcsid = $row['rcsid'];
+    $sched_id = $row['sched_id'];
     $alertTimes = json_decode($row['schedule']);
     $pickupTime = $row['pickup_time'];
     $pickupLoc = $row['pickup_loc'];
     $alertTime = $row['first_alert'];
+    $recurring = $row['recurring'];
+    $recur_sched = json_decode($row['recur_sched']);
 
     $Userstmt = $dbconn->prepare("SELECT * FROM users WHERE rcsid = :rcsid;");
     $Userstmt->execute(array(":rcsid"=>$rcsid));
@@ -120,30 +123,26 @@
     if (!$tmpMail->send()) {
         echo "Mailer Error: " . $tmpMail->ErrorInfo;
     } else {
-        echo "Message sent!";
-        
+        echo "Message sent!<br>";
+
         $nextAlert = array_shift($alertTimes);
         
-        if($nextAlert == "00:00:00" || empty($alertTimes)){
-          $stmt = $dbconn->prepare("DELETE FROM schedules WHERE rcsid = :rcsid");
-          $stmt->execute(array(":rcsid"=>$rcsid));
-        } else{
-          $stmt = $dbconn->prepare("UPDATE schedules SET schedule = :schedule, first_alert = :firstAlert WHERE rcsid = :rcsid");
-          $stmt->execute(array(":schedule"=>json_encode($alertTimes), ":firstAlert"=>$nextAlert, ":rcsid"=>$rcsid));
-        }
-//        if($nextAlert != ""){
+        if($nextAlert == ""){
+          if($recurring == 0){
+            $stmt = $dbconn->prepare("DELETE FROM schedules WHERE sched_id = :sched_id");
+            $stmt->execute(array(":sched_id"=>$rcsid));
+          } else {
+            $nextWeek = date("Y-m-d",strtotime("+1 week"));
+            $alertTimes = $recur_sched;
+            $nextAlert = array_shift($alertTimes);
+            $stmt = $dbconn->prepare("UPDATE schedules SET date = :nextWeek, schedule = :schedule, first_alert = :firstAlert WHERE sched_id = :sched_id");
+            $stmt->execute(array(":nextWeek"=>$nextWeek, ":schedule"=>json_encode($alertTimes), ":firstAlert"=>$nextAlert, ":sched_id"=>$sched_id));
+          }
           
-//        }
-        
-        
+        } else{
+          $stmt = $dbconn->prepare("UPDATE schedules SET schedule = :schedule, first_alert = :firstAlert WHERE sched_id = :sched_id");
+          $stmt->execute(array(":schedule"=>json_encode($alertTimes), ":firstAlert"=>$nextAlert, ":sched_id"=>$sched_id));
+        }        
     }
     
   }
-  
-//  function sendAlerts($phoneNumber, $alerts){
-////    sleep(1);
-//    echo $phoneNumber."<br>";
-//    print_r($alerts);
-//    exit();
-//    
-//  }
