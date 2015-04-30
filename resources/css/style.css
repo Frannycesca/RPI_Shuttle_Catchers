@@ -2,6 +2,38 @@
 	margin-top: 100px;
 }
 
+#welcome {
+  text-align: center;
+}
+
+#login, #logout {
+  margin-top: 8px;
+  color: white !important;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+}
+
+#login:hover {
+  background-color: #5cb85c;
+}
+
+#logout:hover {
+  background-color: #d9534f;
+}
+
+#phoneCarrier {
+  display: block;
+}
+
+#scheduleForm {
+  display: none;
+}
+
+#scheduleAlert {
+  text-align: center;
+  padding-top: 10px
+}
+
 .form-signin {
   max-width: 330px;
   padding: 15px;
@@ -26,16 +58,6 @@
 .form-signin .form-control:focus {
   z-index: 2;
 }
-.form-signin input[type="email"] {
-  margin-bottom: -1px;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-}
-.form-signin input[type="password"] {
-  margin-bottom: 10px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
 
 .col-1 {
 	width: 56%;
@@ -56,8 +78,6 @@
 	padding-left: 15px;
 }
 
- #map-canvas { height: 100% }
-
 #user {
   color: gray;
 }
@@ -68,4 +88,17 @@
 #error {
   color: red;
   visibility: hidden;
+}
+
+#schedules th {
+  text-align: center;
+  padding: 5px;
+}
+
+#schedules td {
+  padding: 10px;
+}
+
+footer {
+  text-align: center;
 }
