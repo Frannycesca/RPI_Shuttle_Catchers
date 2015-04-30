@@ -48,10 +48,16 @@
   $today = date("Y-m-d");
   $timeR1 = date("H:i:00");
   $timeR2 = date("H:i", strtotime("+1 hour"));
+
+  if($timeR1 > "23:00:00"){
+    exit();
+  }
   
   echo $timeR1." - ".$timeR2."<br>".PHP_EOL;
   
   echo $today."<br>";
+
+  
   
 //  $stmt = $dbconn->prepare("SELECT * FROM schedules WHERE date = :today AND first_alert >= :timeR1 AND first_alert <= :timeR2;");
 //  $stmt->execute(array(":today"=>$today, ":timeR1"=>$timeR1, ":timeR2"=>$timeR2));
@@ -59,8 +65,8 @@
   $stmt = $dbconn->prepare("SELECT * FROM schedules WHERE date = :today AND first_alert = :timeR1;");
   $stmt->execute(array(":today"=>$today, ":timeR1"=>$timeR1));
   
- // $stmt = $dbconn->prepare("SELECT * FROM schedules WHERE date = :today ;");
- // $stmt->execute(array(":today"=>$today));
+  // $stmt = $dbconn->prepare("SELECT * FROM schedules WHERE date = :today ;");
+  // $stmt->execute(array(":today"=>$today));
  
   while($row = $stmt->fetch()){
     $tmpMail = $mail;
@@ -105,7 +111,7 @@
     }
     
     $warningTime =  (( strtotime($pickupTime) - strtotime($alertTime) ) / 60);
-    
+    echo "alert time: ".$alertTime."<br>";
     //Set who the message is to be sent to
     $tmpMail->addAddress($phoneNumber, '');
 
@@ -126,11 +132,14 @@
         echo "Message sent!<br>";
 
         $nextAlert = array_shift($alertTimes);
+        print_r($alertTimes);
+        echo $pickupLoc."->".$nextAlert;
         
         if($nextAlert == ""){
+          echo "<br>no next";
           if($recurring == 0){
             $stmt = $dbconn->prepare("DELETE FROM schedules WHERE sched_id = :sched_id");
-            $stmt->execute(array(":sched_id"=>$rcsid));
+            $stmt->execute(array(":sched_id"=>$sched_id));
           } else {
             $nextWeek = date("Y-m-d",strtotime("+1 week"));
             $alertTimes = $recur_sched;

@@ -98,7 +98,7 @@
             		}
 
             		$alerts = json_decode($row['schedule']);
-            		$tableRow.="<td>";
+            		$tableRow.="<td>".date("H:i", strtotime($row['first_alert'])).", ";
             		for($i=0; $i<count($alerts);$i++){
             			$tableRow.=$alerts[$i].", ";
             		}
