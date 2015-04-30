@@ -42,16 +42,14 @@ function getSchedule(route, loc) {
         minute = "0" + minute;
       }
       // after 11pm (last shuttle), the alerts start for the next day
-      // alert(hour+":"+minute);
 
-//      $("#pickupTime").html('<option>Please select a pick-up time</option><option value="next">Next available shuttle</option>');
       $("#pickupTime").html('<option>Please select a pick-up time</option>');
        var date = (today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getFullYear();
       for (var i = 0; i < tmp.length; i++) {
         if (tmp[i].location === loc) {
           var times = tmp[i].times;
-          for (var j = 0; j < times.length; j++) { 
-         
+          for (var j = 0; j < times.length; j++) {
+
             if ($("#pickupDate").val() === date) {
                  var military = hour + ":" + minute;
                   var temp;
@@ -70,11 +68,11 @@ function getSchedule(route, loc) {
                   temp = arr2[0] + ":" + arr2[1];
 
                 if ( temp > military ) {
-                  $("#pickupTime").append("<option value='" + times[j] + "'>" + times[j] + "</option>"); 
+                  $("#pickupTime").append("<option value='" + times[j] + "'>" + times[j] + "</option>");
                 }
             }
             else {
-              $("#pickupTime").append("<option value='" + times[j] + "'>" + times[j] + "</option>"); 
+              $("#pickupTime").append("<option value='" + times[j] + "'>" + times[j] + "</option>");
             }
           }
         }
@@ -116,7 +114,7 @@ $(document).ready(function () {
       for (var i = 0; i < westRoutes.length; i++) {
         $("#pickupLoc").append("<option value='" + westRoutes[i] + "'>" + westRoutes[i] + "</option>");
       }
-    } 
+    }
   });
 
 
@@ -135,24 +133,13 @@ $(document).ready(function () {
     $("#walkingSpeed").removeClass("error");
     $("#pickupDate").removeClass("error");
     $("#pickupTime").removeClass("error");
-    
+
     var route = $("#route").val();
     var pickupLoc = $("#pickupLoc").val();
     var walkingSpeed = $("#walkingSpeed").val();
     var pickupDate = $("#pickupDate").val();
     var pickupTime = $("#pickupTime").val();
 
-    
-
-//    $("#out_route").html("Route: " + route);
-//    $("#out_loc").html("Pick-up Location: " + pickupLoc);
-//    $("#out_speed").html("Waling Speed: " + walkingSpeed);
-//    $("#out_time").html("Pick-up Time: " + pickupTime);
-//    $("#out_alerts").html("Alerts: ");
-    // for(var i=0;i<alertTimes.length;i++){
-    // 	$("#out_alerts").append(alertTimes[i]+", ");
-    // }
-    
     var error = false;
     if (route === "Please select a route") {
       $("#route").addClass("error");
@@ -174,13 +161,13 @@ $(document).ready(function () {
  				$("#pickupTime").addClass("error");
  				error = true;
  			}
-      
+
       if(error === false){
         var alertTimes = [];
         $("input[name='alert_times[]']:checked").each(function () {
           alertTimes.push(this.value);
         });
-        
+
         $.ajax({
           url: "http://shuttlecatchers.myrpi.org/setAlarm.php",
           data: {
@@ -210,7 +197,7 @@ $(document).ready(function () {
 
     var phone = $("#phoneNumber").val();
     var carrier = $("#phoneCarrier :selected").val();
-    
+
     var phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
     var digits = phone.replace(/\D/g, "");
 
@@ -235,7 +222,7 @@ $(document).ready(function () {
     } else {
       alert("Invalid phone number");
     }
-   
+
   });
 
 });
