@@ -20,6 +20,7 @@
 		phpCAS::logout(array('service'=>'http://shuttlecatchers.myrpi.org/'));
 	}
 
+	//if user clicks on delete button next to schedule, remove the alert from the database
 	$stmt = $dbconn->prepare("DELETE FROM schedules WHERE rcsid = :rcsid AND sched_id = :sched_id");
 	$stmt->execute(array(":rcsid"=>$rcsid, ":sched_id"=>$sched_id));
 

@@ -5,6 +5,7 @@
 
 	require_once("./dbconfig.php");
 
+  //check if logged in
 	if (phpCAS::isAuthenticated()){
 		$rcsid = phpCAS::getUser();
 		$stmt = $dbconn->prepare("SELECT * FROM users WHERE rcsid = :rcsid");
@@ -79,6 +80,7 @@
           <span id="noNumber" class="label label-danger">You must enter a phone number (above) before you can set an alert!</span>
         </h1>
         
+        <!--Retrieve all registered alerts for the logged in user and display the information in a table-->
         <?php 
           else: 
           	echo "<h3>Schedules</h3>";

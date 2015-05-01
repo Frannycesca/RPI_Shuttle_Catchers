@@ -5,6 +5,7 @@
 
 	require_once("./dbconfig.php");
 
+  //check if logged in
 	if (phpCAS::isAuthenticated()){
 		$rcsid = phpCAS::getUser();
 		$stmt = $dbconn->prepare("SELECT * FROM users WHERE rcsid = :rcsid");

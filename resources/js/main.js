@@ -1,3 +1,6 @@
+
+
+//pulls the list of shuttle times for the route and pickup location chosen
 function getSchedule(route, loc) {
   $.getJSON("rpi_shuttle_schedule.json", function (data) {
     var today = new Date();
@@ -34,7 +37,8 @@ function getSchedule(route, loc) {
       if (minute < 10) {
         minute = "0" + minute;
       }
-
+  
+      //append pickup times to select dropdown 
       $("#pickupTime").html('<option>Please select a pick-up time</option>');
 
       for (var i = 0; i < tmp.length; i++) {
@@ -75,6 +79,7 @@ function getSchedule(route, loc) {
   });
 }
 
+//delete a schedule from the user
 function removeSchedule(sched_id){
   var rcs_id = $("#rcsid").html();
 
@@ -96,7 +101,8 @@ function removeSchedule(sched_id){
 }
 
 $(document).ready(function () {
-
+  
+  //stored pick up locations for dropdown boxes
   var eastRoutes = ["Union", "Colonie", "Brinsmade", "Sunset 1 & 2", "E-lot", "B-lot", "9th/Sage", "West lot", "Sage"];
   var westRoutes = ["Union", "Sage Ave", "Blitman", "City Station", "Poly Tech", "15th & Collage"];
 
@@ -107,6 +113,7 @@ $(document).ready(function () {
 
   var alertType;
 
+  //load form for single alerts
   $("#singleAlert").click(function(){
     alertType = "single";
     $(this).addClass("active");
@@ -119,6 +126,7 @@ $(document).ready(function () {
     
     $("#pickupDate").append("<option value='" + tmp + "'>Today</option>");
 
+    //get today's date and the next 6 days in mm/dd/yyyy format. add to pickup date dropdown box
     for (var i = 0; i < 7; i++) {
       d.setMilliseconds(d.getMilliseconds() + oneDay);
       tmp = (d.getMonth() + 1) + "/" + d.getDate();
@@ -127,6 +135,7 @@ $(document).ready(function () {
     }
   });
 
+  //load form for schedule alerts
   $("#recurringAlert").click(function(){
     alertType = "recurring";
     $(this).addClass("active");
@@ -139,6 +148,7 @@ $(document).ready(function () {
     
   });
 
+  //if the route dropdown is changed, then refresh pickup location dropdown
   $("#route").change(function () {
     $("#pickupLoc").html("<option>Please select a location</option>");
     if (this.value === "east") {
@@ -154,14 +164,17 @@ $(document).ready(function () {
   });
 
 
+  //if the pickup date selected option changes, reload the shuttle pickup times
   $("#pickupDate").change(function () {
     getSchedule($("#route").val(), $("#pickupLoc").val());
   });
 
+  //if the pickup day selected option changes, reload teh shuttle pickup times
   $("#pickupDay").change(function () {
     getSchedule($("#route").val(), $("#pickupLoc").val());
   });
 
+  //when the set alert button is clicked - checks for errors in user form; if no errors then send data to server
   $("#setAlarm").click(function () {
     $("#error").css('visibility', 'hidden');
     $("#route").removeClass("error");
@@ -182,7 +195,8 @@ $(document).ready(function () {
     }
     
     var pickupTime = $("#pickupTime").val();
-
+    
+    //check if any field has been left blank; if so, highlight missing fields in red by adding class "error"
     var error = false;
     if (route === "Please select a route") {
       $("#route").addClass("error");
@@ -208,6 +222,7 @@ $(document).ready(function () {
       error = true;
     }
 
+    //if no errors, send data to server to set alarm
     if(error === false){
         var alertTimes = [];
         $("input[name='alert_times[]']:checked").each(function () {
@@ -236,6 +251,7 @@ $(document).ready(function () {
 
   });
 
+  //form for saving user's phone number and carrier
   $("#savePhone").click(function () {
 
     var phone = $("#phoneNumber").val();
@@ -244,6 +260,7 @@ $(document).ready(function () {
     var phoneRe = /^[2-9]\d{2}[2-9]\d{2}\d{4}$/;
     var digits = phone.replace(/\D/g, "");
 
+    //parse entered phone number - if valid, then send to server
     if (digits.match(phoneRe) !== null) {
       var rcs_id = $("#rcsid").html();
 

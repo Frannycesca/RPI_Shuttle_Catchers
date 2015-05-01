@@ -5,6 +5,7 @@
 
 	require_once("./dbconfig.php");
 
+  //checks login. if entered rcs and password is valid, redirect to shuttlecatchers page
 	if (phpCAS::isAuthenticated()){
 		$rcsid = phpCAS::getUser();
 		$stmt = $dbconn->prepare("SELECT * FROM users WHERE rcsid = :rcsid");
